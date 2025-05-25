@@ -87,10 +87,6 @@ public class AuthController {
     public ResponseEntity<?> registrarUsuario(
         @Parameter(description = "Datos de registro del usuario", required = true)
         @RequestBody SignUpDto signUpDto) {
-        // Verificar si el correo ya existe
-        if (userRepository.existsByCorreo(signUpDto.getCorreo())) {
-            return new ResponseEntity<>("El correo ya está registrado", HttpStatus.BAD_REQUEST);
-        }
 
         // Crear nuevo usuario
         User user = new User();

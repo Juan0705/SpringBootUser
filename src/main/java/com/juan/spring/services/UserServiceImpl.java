@@ -1,9 +1,9 @@
 package com.juan.spring.services;
 
 import com.juan.spring.entities.User;
+import com.juan.spring.entities.Phone;
 import com.juan.spring.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +19,7 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private PhoneService phoneService;
 
     @Override
     @Transactional(readOnly = true)
@@ -48,70 +48,80 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User updateUser(UUID id, User userDetails) {
-        return userRepository.findById(id)
-            .map(existingUser -> {
-                // Preservar la fecha de creación original
-                LocalDateTime fechaCreacion = existingUser.getCreado();
-                
-                // Actualizar campos básicos
-                existingUser.setNombre(userDetails.getNombre());
-                existingUser.setCorreo(userDetails.getCorreo());
-                
-                // Actualizar contraseña solo si se proporciona una nueva
-                if (userDetails.getContrasena() != null && !userDetails.getContrasena().isEmpty()) {
-                    existingUser.setContrasena(passwordEncoder.encode(userDetails.getContrasena()));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
+
+        // Actualizar campos básicos
+        user.setNombre(userDetails.getNombre());
+        user.setCorreo(userDetails.getCorreo());
+        user.setEstaActivo(userDetails.getEstaActivo());
+        user.setModificado(LocalDateTime.now());
+
+        // Manejar teléfonos
+        if (userDetails.getTelefonos() != null) {
+            for (Phone phoneDetails : userDetails.getTelefonos()) {
+                if (phoneDetails.getId() != null) {
+                    // Verificar si el teléfono pertenece al usuario
+                    Phone existingPhone = phoneService.getPhoneById(phoneDetails.getId())
+                            .orElseThrow(() -> new RuntimeException("Teléfono no encontrado con id: " + phoneDetails.getId()));
+                    
+                    if (!existingPhone.getUser().getId().equals(id)) {
+                        throw new RuntimeException("El teléfono no pertenece al usuario");
+                    }
+                    
+                    // Actualizar teléfono existente
+                    phoneService.updatePhone(phoneDetails.getId(), phoneDetails);
+                } else {
+                    // Crear nuevo teléfono
+                    phoneDetails.setUser(user);
+                    phoneService.createPhone(phoneDetails);
                 }
-                
-                existingUser.setEstaActivo(userDetails.getEstaActivo());
-                existingUser.setUltimoLogin(userDetails.getUltimoLogin());
-                existingUser.setToken(userDetails.getToken());
-                
-                // Manejar la colección de teléfonos
-                if (userDetails.getTelefonos() != null) {
-                    // Limpiar la colección existente
-                    existingUser.getTelefonos().clear();
-                    // Agregar los nuevos teléfonos
-                    userDetails.getTelefonos().forEach(phone -> {
-                        phone.setUser(existingUser);
-                        existingUser.getTelefonos().add(phone);
-                    });
-                }
-                
-                // Restaurar la fecha de creación original
-                existingUser.setCreado(fechaCreacion);
-                
-                return userRepository.save(existingUser);
-            })
-            .orElse(null);
+            }
+        }
+
+        return userRepository.save(user);
     }
 
     @Override
     @Transactional
     public User partialUpdateUser(UUID id, User userDetails) {
-        return userRepository.findById(id)
-            .map(existingUser -> {
-                if (userDetails.getNombre() != null) {
-                    existingUser.setNombre(userDetails.getNombre());
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
+
+        if (userDetails.getNombre() != null) {
+            user.setNombre(userDetails.getNombre());
+        }
+        if (userDetails.getCorreo() != null) {
+            user.setCorreo(userDetails.getCorreo());
+        }
+        if (userDetails.getEstaActivo() != null) {
+            user.setEstaActivo(userDetails.getEstaActivo());
+        }
+        user.setModificado(LocalDateTime.now());
+
+        // Manejar teléfonos
+        if (userDetails.getTelefonos() != null) {
+            for (Phone phoneDetails : userDetails.getTelefonos()) {
+                if (phoneDetails.getId() != null) {
+                    // Verificar si el teléfono pertenece al usuario
+                    Phone existingPhone = phoneService.getPhoneById(phoneDetails.getId())
+                            .orElseThrow(() -> new RuntimeException("Teléfono no encontrado con id: " + phoneDetails.getId()));
+                    
+                    if (!existingPhone.getUser().getId().equals(id)) {
+                        throw new RuntimeException("El teléfono no pertenece al usuario");
+                    }
+                    
+                    // Actualizar teléfono existente
+                    phoneService.updatePhone(phoneDetails.getId(), phoneDetails);
+                } else {
+                    // Crear nuevo teléfono
+                    phoneDetails.setUser(user);
+                    phoneService.createPhone(phoneDetails);
                 }
-                if (userDetails.getCorreo() != null) {
-                    existingUser.setCorreo(userDetails.getCorreo());
-                }
-                if (userDetails.getContrasena() != null && !userDetails.getContrasena().isEmpty()) {
-                    existingUser.setContrasena(passwordEncoder.encode(userDetails.getContrasena()));
-                }
-                if (userDetails.getEstaActivo() != null) {
-                    existingUser.setEstaActivo(userDetails.getEstaActivo());
-                }
-                if (userDetails.getTelefonos() != null) {
-                    existingUser.getTelefonos().clear();
-                    userDetails.getTelefonos().forEach(phone -> {
-                        phone.setUser(existingUser);
-                        existingUser.getTelefonos().add(phone);
-                    });
-                }
-                return userRepository.save(existingUser);
-            })
-            .orElse(null);
+            }
+        }
+
+        return userRepository.save(user);
     }
 
     @Override

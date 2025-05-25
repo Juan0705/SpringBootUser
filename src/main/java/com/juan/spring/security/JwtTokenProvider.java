@@ -3,7 +3,6 @@ package com.juan.spring.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecurityException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -13,9 +12,6 @@ import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
-
-    @Value("${app.jwt-expiration-milliseconds}")
-    private int jwtExpirationInMs;
 
     private SecretKey key;
 
