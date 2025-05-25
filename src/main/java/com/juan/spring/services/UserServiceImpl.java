@@ -2,8 +2,8 @@ package com.juan.spring.services;
 
 import com.juan.spring.entities.User;
 import com.juan.spring.repositories.UserRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +17,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional(readOnly = true)
@@ -44,20 +47,35 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User updateUser(UUID id, User user) {
+    public User updateUser(UUID id, User userDetails) {
         return userRepository.findById(id)
             .map(existingUser -> {
                 // Preservar la fecha de creación original
                 LocalDateTime fechaCreacion = existingUser.getCreado();
                 
-                // Actualizar todos los campos excepto id y fecha de creación
-                existingUser.setNombre(user.getNombre());
-                existingUser.setCorreo(user.getCorreo());
-                existingUser.setContrasena(user.getContrasena());
-                existingUser.setTelefonos(user.getTelefonos());
-                existingUser.setEstaActivo(user.getEstaActivo());
-                existingUser.setUltimoLogin(user.getUltimoLogin());
-                existingUser.setToken(user.getToken());
+                // Actualizar campos básicos
+                existingUser.setNombre(userDetails.getNombre());
+                existingUser.setCorreo(userDetails.getCorreo());
+                
+                // Actualizar contraseña solo si se proporciona una nueva
+                if (userDetails.getContrasena() != null && !userDetails.getContrasena().isEmpty()) {
+                    existingUser.setContrasena(passwordEncoder.encode(userDetails.getContrasena()));
+                }
+                
+                existingUser.setEstaActivo(userDetails.getEstaActivo());
+                existingUser.setUltimoLogin(userDetails.getUltimoLogin());
+                existingUser.setToken(userDetails.getToken());
+                
+                // Manejar la colección de teléfonos
+                if (userDetails.getTelefonos() != null) {
+                    // Limpiar la colección existente
+                    existingUser.getTelefonos().clear();
+                    // Agregar los nuevos teléfonos
+                    userDetails.getTelefonos().forEach(phone -> {
+                        phone.setUser(existingUser);
+                        existingUser.getTelefonos().add(phone);
+                    });
+                }
                 
                 // Restaurar la fecha de creación original
                 existingUser.setCreado(fechaCreacion);
@@ -69,14 +87,28 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User partialUpdateUser(UUID id, User user) {
+    public User partialUpdateUser(UUID id, User userDetails) {
         return userRepository.findById(id)
             .map(existingUser -> {
-                if (user.getNombre() != null) existingUser.setNombre(user.getNombre());
-                if (user.getCorreo() != null) existingUser.setCorreo(user.getCorreo());
-                if (user.getContrasena() != null) existingUser.setContrasena(user.getContrasena());
-                if (user.getTelefonos() != null) existingUser.setTelefonos(user.getTelefonos());
-                if (user.getEstaActivo() != null) existingUser.setEstaActivo(user.getEstaActivo());
+                if (userDetails.getNombre() != null) {
+                    existingUser.setNombre(userDetails.getNombre());
+                }
+                if (userDetails.getCorreo() != null) {
+                    existingUser.setCorreo(userDetails.getCorreo());
+                }
+                if (userDetails.getContrasena() != null && !userDetails.getContrasena().isEmpty()) {
+                    existingUser.setContrasena(passwordEncoder.encode(userDetails.getContrasena()));
+                }
+                if (userDetails.getEstaActivo() != null) {
+                    existingUser.setEstaActivo(userDetails.getEstaActivo());
+                }
+                if (userDetails.getTelefonos() != null) {
+                    existingUser.getTelefonos().clear();
+                    userDetails.getTelefonos().forEach(phone -> {
+                        phone.setUser(existingUser);
+                        existingUser.getTelefonos().add(phone);
+                    });
+                }
                 return userRepository.save(existingUser);
             })
             .orElse(null);

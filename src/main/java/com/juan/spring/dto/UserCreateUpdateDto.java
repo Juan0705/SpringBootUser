@@ -1,42 +1,20 @@
-package com.juan.spring.entities;
+package com.juan.spring.dto;
 
-import javax.persistence.*;
-import java.util.UUID;
-import java.util.List;
 import java.time.LocalDateTime;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Type;
+import java.util.List;
+import java.util.UUID;
 
-@Entity
-@Table(name = "usuarios")
-public class User {
-    @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Type(type = "org.hibernate.type.UUIDCharType")
+public class UserCreateUpdateDto {
     private UUID id;
-
     private String nombre;
-
-    @Column(unique = true)
     private String correo;
-
     private String contrasena;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Phone> telefonos;
-
-    @Column(name = "creado", nullable = false, updatable = false)
-    private LocalDateTime creado;
-
-    @Column(name = "modificado")
-    private LocalDateTime modificado;
-
-    private LocalDateTime ultimoLogin;
-
-    private String token;
-
     private Boolean estaActivo;
+    private LocalDateTime creado;
+    private LocalDateTime modificado;
+    private LocalDateTime ultimoLogin;
+    private String token;
+    private List<PhoneDto> telefonos;
 
     public UUID getId() {
         return id;
@@ -70,12 +48,12 @@ public class User {
         this.contrasena = contrasena;
     }
 
-    public List<Phone> getTelefonos() {
-        return telefonos;
+    public Boolean getEstaActivo() {
+        return estaActivo;
     }
 
-    public void setTelefonos(List<Phone> telefonos) {
-        this.telefonos = telefonos;
+    public void setEstaActivo(Boolean estaActivo) {
+        this.estaActivo = estaActivo;
     }
 
     public LocalDateTime getCreado() {
@@ -110,30 +88,11 @@ public class User {
         this.token = token;
     }
 
-    public Boolean getEstaActivo() {
-        return estaActivo;
+    public List<PhoneDto> getTelefonos() {
+        return telefonos;
     }
 
-    public void setEstaActivo(Boolean estaActivo) {
-        this.estaActivo = estaActivo;
+    public void setTelefonos(List<PhoneDto> telefonos) {
+        this.telefonos = telefonos;
     }
-
-    public String getEmail() {
-        return correo;
-    }
-
-    public void setEmail(String email) {
-        this.correo = email;
-    }
-
-    @PrePersist
-    protected void onCreate() {
-        creado = LocalDateTime.now();
-        modificado = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        modificado = LocalDateTime.now();
-    }
-}
+} 
