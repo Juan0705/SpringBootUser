@@ -97,3 +97,8 @@ El proyecto utiliza H2 Database en modo memoria. Puedes acceder a la consola H2 
 ## Licencia
 
 Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles. 
+
+## Swagger endpoint
+
+- http://localhost:8000/swagger-ui/index.html
+- http://localhost:8000/v3/api-docs

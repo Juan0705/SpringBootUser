@@ -1,19 +1,40 @@
 package com.juan.spring.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Schema(description = "DTO para crear o actualizar un usuario")
 public class UserCreateUpdateDto {
+    @Schema(hidden = true)
     private UUID id;
+    
+    @Schema(description = "Nombre del usuario", example = "Juan S")
     private String nombre;
+    
+    @Schema(description = "Correo electrónico del usuario", example = "cualquiera@ejemplo.com")
     private String correo;
+    
+    @Schema(description = "Contraseña del usuario", example = "Juan!1sa")
     private String contrasena;
+    
+    @Schema(description = "Estado de activación del usuario", example = "true")
     private Boolean estaActivo;
+    
+    @Schema(hidden = true)
     private LocalDateTime creado;
+    
+    @Schema(hidden = true)
     private LocalDateTime modificado;
+    
+    @Schema(hidden = true)
     private LocalDateTime ultimoLogin;
+    
+    @Schema(hidden = true)
     private String token;
+    
+    @Schema(description = "Lista de teléfonos del usuario")
     private List<PhoneDto> telefonos;
 
     public UUID getId() {

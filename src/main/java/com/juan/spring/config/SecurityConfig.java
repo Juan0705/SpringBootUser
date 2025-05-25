@@ -51,18 +51,36 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.disable())
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeRequests(auth -> auth
-                .antMatchers("/api/auth/**", "/h2-console/**").permitAll()
-                .antMatchers(HttpMethod.POST, "/users").permitAll()
-                .anyRequest().authenticated())
-            .headers(headers -> headers.frameOptions().disable())
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-        
+                .cors(cors -> cors.disable())
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeRequests(auth -> auth
+                        // Swagger UI v3 (OpenAPI)
+                        .antMatchers("/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/swagger-ui/index.html",
+                                "/swagger-ui.html",
+                                "/swagger-ui/swagger-ui.css",
+                                "/swagger-ui/swagger-ui-bundle.js",
+                                "/swagger-ui/swagger-ui-standalone-preset.js",
+                                "/swagger-ui/swagger-initializer.js")
+                        .permitAll()
+                        // H2 Console
+                        .antMatchers("/h2-console/**").permitAll()
+                        // Auth endpoints
+                        .antMatchers("/api/auth/**").permitAll()
+                        // User creation
+                        .antMatchers(HttpMethod.POST, "/users").permitAll()
+                        // Require authentication for all other requests
+                        .anyRequest().authenticated())
+                .headers(headers -> headers.frameOptions().disable())
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 }

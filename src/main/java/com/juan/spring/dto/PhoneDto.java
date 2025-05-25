@@ -1,9 +1,19 @@
 package com.juan.spring.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "DTO para teléfono de usuario")
 public class PhoneDto {
+    @Schema(hidden = true)
     private Long id;
+    
+    @Schema(description = "Número de teléfono", example = "1234567")
     private String numero;
+    
+    @Schema(description = "Código de ciudad", example = "1")
     private String codigoCiudad;
+    
+    @Schema(description = "Código de país", example = "57")
     private String codigoPais;
 
     public Long getId() {
