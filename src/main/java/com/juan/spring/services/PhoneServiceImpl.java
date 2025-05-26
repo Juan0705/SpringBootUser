@@ -1,9 +1,7 @@
 package com.juan.spring.services;
 
 import com.juan.spring.entities.Phone;
-import com.juan.spring.entities.User;
 import com.juan.spring.repositories.PhoneRepository;
-import com.juan.spring.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,9 +15,6 @@ public class PhoneServiceImpl implements PhoneService {
 
     @Autowired
     private PhoneRepository phoneRepository;
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Override
     @Transactional(readOnly = true)
