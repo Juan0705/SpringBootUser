@@ -1,5 +1,8 @@
 # API de Gestión de Usuarios con Spring Boot
 
+[![Estado del Repositorio](https://img.shields.io/badge/Estado-Público-green)](https://github.com/tu-usuario/nombre-repo)
+[![Permisos](https://img.shields.io/badge/Permisos-Solo%20Lectura-red)](https://github.com/tu-usuario/nombre-repo)
+
 Este proyecto es una API REST desarrollada con Spring Boot que proporciona funcionalidades de gestión de usuarios, autenticación y autorización utilizando JWT (JSON Web Tokens).
 
 ## 🚀 Características
