@@ -5,6 +5,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.juan.spring.entities.User;
+import com.juan.spring.dto.UserDto;
+import com.juan.spring.dto.UserCreateUpdateDto;
+import com.juan.spring.dto.ValidationErrorResponse;
 
 public interface UserService {
 
@@ -31,5 +34,14 @@ public interface UserService {
 
     // Método adicional para validar si un usuario existe
     boolean existsById(UUID id);
+
+    // Nuevos métodos para manejar la lógica del controlador
+    ValidationErrorResponse validateUserData(UserCreateUpdateDto userDto);
+    UserDto convertToDto(User user);
+    User convertToEntity(UserCreateUpdateDto dto);
+    UserDto createUserWithValidation(UserCreateUpdateDto userDto);
+    UserDto updateUserWithValidation(UUID id, UserCreateUpdateDto userDto);
+    UserDto partialUpdateUserWithValidation(UUID id, UserCreateUpdateDto userDto);
+    boolean isEmailAvailable(String email, UUID excludeUserId);
 
 }

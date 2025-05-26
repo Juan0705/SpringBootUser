@@ -102,3 +102,7 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 
 - http://localhost:8000/swagger-ui/index.html
 - http://localhost:8000/v3/api-docs
+
+## Test 
+
+- mvn clean test

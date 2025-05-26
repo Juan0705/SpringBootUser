@@ -2,6 +2,7 @@ package com.juan.spring.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.juan.spring.dto.UserCreateUpdateDto;
+import com.juan.spring.dto.UserDto;
 import com.juan.spring.entities.User;
 import com.juan.spring.security.JwtTokenProvider;
 import com.juan.spring.services.UserService;
@@ -24,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.ArgumentMatchers.argThat;
 
 @WebMvcTest(UserController.class)
 @Import(NoSecurityConfig.class)
@@ -70,6 +72,16 @@ public class UserControllerTest {
 
         // Configurar comportamiento por defecto del tokenProvider
         when(tokenProvider.generarToken(any())).thenReturn("test-token");
+
+        when(userService.convertToDto(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            UserDto dto = new UserDto();
+            dto.setId(user.getId());
+            dto.setNombre(user.getNombre());
+            dto.setCorreo(user.getCorreo());
+            dto.setEstaActivo(user.getEstaActivo());
+            return dto;
+        });
     }
 
     @Test
@@ -100,52 +112,54 @@ public class UserControllerTest {
 
     @Test
     void createUser_WithValidData_ShouldReturnCreatedUser() throws Exception {
-        when(userService.getUserByEmail(testUserDto.getCorreo())).thenReturn(Optional.empty());
-        when(userService.createUser(any(User.class))).thenReturn(testUser);
+        UserDto userDtoValido = new UserDto();
+        userDtoValido.setId(UUID.randomUUID());
+        userDtoValido.setNombre(testUserDto.getNombre());
+        userDtoValido.setCorreo(testUserDto.getCorreo());
+        userDtoValido.setEstaActivo(testUserDto.getEstaActivo());
+        when(userService.createUserWithValidation(any(UserCreateUpdateDto.class))).thenReturn(userDtoValido);
 
         mockMvc.perform(post("/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testUserDto)))
             .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.nombre").value(testUser.getNombre()))
-            .andExpect(jsonPath("$.correo").value(testUser.getCorreo()))
-            .andExpect(jsonPath("$.estaActivo").value(testUser.getEstaActivo()));
-
-        verify(userService).createUser(any(User.class));
+            .andExpect(jsonPath("$.nombre").value(testUserDto.getNombre()))
+            .andExpect(jsonPath("$.correo").value(testUserDto.getCorreo()))
+            .andExpect(jsonPath("$.estaActivo").value(testUserDto.getEstaActivo()));
     }
 
     @Test
     void updateUser_WithValidData_ShouldReturnUpdatedUser() throws Exception {
-        when(userService.existsById(testUser.getId())).thenReturn(true);
-        when(userService.getUserByEmail(anyString())).thenReturn(Optional.empty());
-        when(userService.updateUser(eq(testUser.getId()), any(User.class))).thenReturn(testUser);
-
+        UserDto userDtoValido = new UserDto();
+        userDtoValido.setId(testUser.getId());
+        userDtoValido.setNombre(testUserDto.getNombre());
+        userDtoValido.setCorreo(testUserDto.getCorreo());
+        userDtoValido.setEstaActivo(testUserDto.getEstaActivo());
+        when(userService.updateUserWithValidation(eq(testUser.getId()), any(UserCreateUpdateDto.class))).thenReturn(userDtoValido);
         mockMvc.perform(put("/users/{id}", testUser.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testUserDto)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.nombre").value(testUser.getNombre()))
-            .andExpect(jsonPath("$.correo").value(testUser.getCorreo()))
-            .andExpect(jsonPath("$.estaActivo").value(testUser.getEstaActivo()));
-
-        verify(userService).updateUser(eq(testUser.getId()), any(User.class));
+            .andExpect(jsonPath("$.nombre").value(testUserDto.getNombre()))
+            .andExpect(jsonPath("$.correo").value(testUserDto.getCorreo()))
+            .andExpect(jsonPath("$.estaActivo").value(testUserDto.getEstaActivo()));
     }
 
     @Test
     void partialUpdateUser_WithValidData_ShouldReturnUpdatedUser() throws Exception {
-        when(userService.existsById(testUser.getId())).thenReturn(true);
-        when(userService.getUserByEmail(anyString())).thenReturn(Optional.empty());
-        when(userService.partialUpdateUser(eq(testUser.getId()), any(User.class))).thenReturn(testUser);
-
+        UserDto userDtoValido = new UserDto();
+        userDtoValido.setId(testUser.getId());
+        userDtoValido.setNombre(testUserDto.getNombre());
+        userDtoValido.setCorreo(testUserDto.getCorreo());
+        userDtoValido.setEstaActivo(testUserDto.getEstaActivo());
+        when(userService.partialUpdateUserWithValidation(eq(testUser.getId()), any(UserCreateUpdateDto.class))).thenReturn(userDtoValido);
         mockMvc.perform(patch("/users/{id}", testUser.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testUserDto)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.nombre").value(testUser.getNombre()))
-            .andExpect(jsonPath("$.correo").value(testUser.getCorreo()))
-            .andExpect(jsonPath("$.estaActivo").value(testUser.getEstaActivo()));
-
-        verify(userService).partialUpdateUser(eq(testUser.getId()), any(User.class));
+            .andExpect(jsonPath("$.nombre").value(testUserDto.getNombre()))
+            .andExpect(jsonPath("$.correo").value(testUserDto.getCorreo()))
+            .andExpect(jsonPath("$.estaActivo").value(testUserDto.getEstaActivo()));
     }
 
     @Test
@@ -173,49 +187,43 @@ public class UserControllerTest {
     @Test
     void updateUser_WithNonExistentId_ShouldReturnNotFound() throws Exception {
         UUID nonExistentId = UUID.randomUUID();
-        when(userService.existsById(nonExistentId)).thenReturn(false);
-
+        when(userService.updateUserWithValidation(eq(nonExistentId), any(UserCreateUpdateDto.class)))
+            .thenThrow(new IllegalStateException("Usuario con ID " + nonExistentId + " no encontrado"));
         mockMvc.perform(put("/users/{id}", nonExistentId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testUserDto)))
             .andExpect(status().isNotFound());
-
-        verify(userService, never()).updateUser(any(UUID.class), any(User.class));
-    }
-
-    @Test
-    void createUser_WithExistingEmail_ShouldReturnConflict() throws Exception {
-        when(userService.getUserByEmail(testUserDto.getCorreo())).thenReturn(Optional.of(testUser));
-
-        mockMvc.perform(post("/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(testUserDto)))
-            .andExpect(status().isConflict());
-
-        verify(userService, never()).createUser(any(User.class));
     }
 
     @Test
     void createUser_WithInvalidEmail_ShouldReturnBadRequest() throws Exception {
+        when(userService.createUserWithValidation(argThat(dto -> "invalid-email".equals(dto.getCorreo()))))
+            .thenThrow(new IllegalArgumentException("El correo electrónico debe tener un formato válido (ejemplo: usuario@dominio.com)"));
         testUserDto.setCorreo("invalid-email");
-
         mockMvc.perform(post("/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testUserDto)))
             .andExpect(status().isBadRequest());
-
-        verify(userService, never()).createUser(any(User.class));
     }
 
     @Test
     void createUser_WithInvalidPassword_ShouldReturnBadRequest() throws Exception {
-        testUserDto.setContrasena("123"); // Contraseña muy corta
-
+        when(userService.createUserWithValidation(argThat(dto -> "123".equals(dto.getContrasena()))))
+            .thenThrow(new IllegalArgumentException("La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial"));
+        testUserDto.setContrasena("123");
         mockMvc.perform(post("/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testUserDto)))
             .andExpect(status().isBadRequest());
+    }
 
-        verify(userService, never()).createUser(any(User.class));
+    @Test
+    void createUser_WithExistingEmail_ShouldReturnConflict() throws Exception {
+        when(userService.createUserWithValidation(any(UserCreateUpdateDto.class)))
+            .thenThrow(new IllegalStateException("El correo test@test.com ya está registrado"));
+        mockMvc.perform(post("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(testUserDto)))
+            .andExpect(status().isConflict());
     }
 } 
