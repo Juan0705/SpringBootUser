@@ -116,8 +116,8 @@ Para probar los endpoints protegidos en Swagger UI:
 - `GET /api/users/{id}` - Obtener usuario por ID
 - `POST /api/users` - Crear nuevo usuario
 - `PUT /api/users/{id}` - Actualizar usuario
-- `PATCH /api/users/{id}/password` - Cambiar contraseña
-- `DELETE /api/users/{id}` - Desactivar usuario
+- `PATCH /api/users/{id}/password` - Actualizar usuario parcialmente
+- `DELETE /api/users/{id}` - Eliminar usuario
 
 ## 🔒 Validaciones
 
@@ -156,13 +156,14 @@ src/
 ├── main/
 │   ├── java/
 │   │   └── com/juan/spring/
+│   │       ├── config/         # Configuración, JWT, Swagger, otros
 │   │       ├── controllers/    # Controladores REST
 │   │       ├── services/       # Lógica de negocio
 │   │       ├── repositories/   # Acceso a datos
 │   │       ├── entities/       # Entidades JPA
-│   │       ├── dto/           # Objetos de transferencia de datos
-│   │       ├── security/      # Configuración de seguridad
-│   │       └── validation/    # Validaciones personalizadas
+│   │       ├── dto/            # Objetos de transferencia de datos
+│   │       ├── security/       # Configuración de seguridad
+│   │       └── validation/     # Validaciones personalizadas
 │   └── resources/
 │       └── application.properties
 └── test/
