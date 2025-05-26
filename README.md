@@ -278,33 +278,6 @@ classDiagram
     UserCreateUpdateDto "1" -- "0..*" PhoneDto
 ```
 
-### Endpoints y Seguridad
-```mermaid
-graph LR
-    subgraph "Endpoints Públicos"
-        Login[POST /api/auth/login]
-        Register[POST /api/auth/registro]
-    end
-    
-    subgraph "Endpoints Protegidos"
-        GetUsers[GET /api/users]
-        GetUser[GET /api/users/{id}]
-        CreateUser[POST /api/users]
-        UpdateUser[PUT /api/users/{id}]
-        PatchUser[PATCH /api/users/{id}]
-        DeleteUser[DELETE /api/users/{id}]
-    end
-    
-    Client[Cliente] --> |Sin Token| Login
-    Client --> |Sin Token| Register
-    Client --> |Con Token JWT| GetUsers
-    Client --> |Con Token JWT| GetUser
-    Client --> |Con Token JWT| CreateUser
-    Client --> |Con Token JWT| UpdateUser
-    Client --> |Con Token JWT| PatchUser
-    Client --> |Con Token JWT| DeleteUser
-```
-
 ## ✨ Autor
 
 Juan Sepulveda - [jsepulveda0705@gmail.com]
